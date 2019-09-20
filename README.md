@@ -2,20 +2,48 @@
 
 [![NPM](https://nodei.co/npm/dc-api-client.png)](https://npmjs.com/package/dc-api-client)
 
-## Usage
+## Require dc-api-client to your project
 
 ```js
 const API = require('dc-api-client');
-const res = await API.Controller.action({ data });
 ```
 
-Response:
+## Make request to back-end
+
+```js
+const res = API.Controller.action({
+    your_data_to_backend
+});
+```
+> `Controller` - your controller name
+> 
+> `action` - your action name in controller
+
+## Example
+
+```js
+const API = require('dc-api-client');
+const res = API.Auth.register({
+    login: 'test@mail.ru',
+    password: '123123'
+});
+```
+
+## Response
+
+Name          | Type
+------------- | -------------
+success       | Boolean
+code          | Int, HTTP code
+msg           | String
+
+## Response example
 
 ```js
 res = {
-    success: Boolean,
-    code: Number,     // HTTP response code
-    msg: Any          // Response message
+    success: true,
+    code: 200,
+    msg: 'user_registred'
 }
 ```
 
