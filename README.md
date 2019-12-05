@@ -2,7 +2,7 @@
 
 [![NPM](https://nodei.co/npm/dc-api-client.png)](https://npmjs.com/package/dc-api-client)
 
-## Require dc-api-client to your project
+## Import dc-api-client to your project
 
 ```js
 const API = require('dc-api-client');
@@ -13,24 +13,16 @@ import API from 'dc-api-client'
 ## Make request to back-end
 
 ```js
-const res = API.Controller.action({
-    your_data_to_backend
+const res = await API.Controller.action({
+    // Any supported data types.
+    // It can be any JSON-compitable type, such as strings, objects etc.
+    // Also you can use any Blob/File value.
 });
 ```
 
 * `Controller` - your controller name
 * `action` - your action name in controller
-* `res` - [Response object](#Response)
-
-## Example
-
-```js
-const API = require('dc-api-client');
-const res = API.Auth.register({
-    login: 'test@mail.ru',
-    password: '123123'
-});
-```
+* `res` - [Response object](#Example)
 
 ## Response
 
@@ -40,17 +32,25 @@ const res = API.Auth.register({
 | code    | `Number`, HTTP code                             |
 | msg     | Any JSON-compitable type returned from back-end |
 
-## Response object example
+## Example
+
+Sending user data to `register` method in `Auth` controller.
 
 ```js
-res = {
+const API = require('dc-api-client');
+const res = await API.Auth.register({
+    login: 'test@mail.ru',
+    password: '123123'
+});
+console.log(res);
+```
+
+Console output:
+
+```js
+{
     success: true,
     code: 200,
     msg: 'user_registred'
 }
 ```
-
-## TODOs
-
-* [ ] No `EnventEmitter` dependency
-* [ ] Transpiled version for pure JS

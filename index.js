@@ -1,12 +1,13 @@
-import { EventEmitter } from 'events';
+// TODO: remove dependency
+var EventEmitter = require('events');
 function packData (data) {
 	if (!data) return null;
-  	let objects = [],
+	let objects = [],
 		stack = [],
 		keys = [],
 		fd = null;
 
-	const json = JSON.stringify(data, function(key, value) {
+	const json = JSON.stringify(data, (key, value) => {
 		if (!key) {
 			objects.push(value);
 			return value;
@@ -24,15 +25,15 @@ function packData (data) {
 			return;
 		}
 
-		let found = objects.find(v => v === value);
+		var found = objects.find(function (v) { return v === value; });
 		if (!found) {
-		  keys.push(key);
-		  stack.unshift(value);
-		  objects.push(value);
+			keys.push(key);
+			stack.unshift(value);
+			objects.push(value);
 		}
 
 		return value;
-  	});
+	});
 
 	if (fd) {
 		fd.append('json', json);
@@ -42,39 +43,52 @@ function packData (data) {
 	}
 }
 
-let settings = {
+var API;
+var isDev;
+var settings = {
 	base: window.location.hostname,
-	secure: true
+	secure: true,
+	dev: function (enabled = null) {
+		if (enabled === null) return isDev;
+		isDev = enabled;
+		if (enabled) window.API = API;
+	}
 };
 
 function sendAPI (controller, action, data = null) {
 	return new Promise(resolve => {
-		const url = `${settings.secure ? 'https' : 'http'}://${settings.base}/${controller}/${action}`;
-		const token = localStorage.getItem('token');
+		var url = `${settings.secure ? 'https' : 'http'}://${settings.base}/${controller}/${action}`;
+		var token = localStorage.getItem('token');
 		data = packData(data);
 
-		const xhr = new XMLHttpRequest();
+		var xhr = new XMLHttpRequest();
 		xhr.open(data ? 'POST' : 'GET', url);
-		typeof data === 'string' && xhr.setRequestHeader('Content-type', 'application/json');
-		token && xhr.setRequestHeader('Token', token);
+		if (typeof data === 'string') xhr.setRequestHeader('Content-type', 'application/json');
+		if (token) xhr.setRequestHeader('Token', token);
 
 		xhr.send(data);
 		xhr.onerror = () => {
 			resolve({ success: false, code: xhr.status, msg: xhr.statusText || xhr.response || 'NetworkError' });
 		};
+
 		xhr.onload = () => {
-			const newToken = xhr.getResponseHeader('token');
+			var newToken = xhr.getResponseHeader('token');
 			if (newToken) localStorage.setItem('token', newToken);
 			try { resolve(JSON.parse(xhr.response)); }
-			catch { resolve({ success: xhr.status === 200, code: xhr.status, msg: xhr.response});  }
+			catch { resolve({ success: xhr.status === 200, code: xhr.status, msg: xhr.response }); }
 		};
 	});
 }
 
-let socket = null;
-let socketEmitter = new EventEmitter();
+var socket = null;
+var socketEmitter = new EventEmitter();
 socketEmitter.__emit = socketEmitter.emit;
-socketEmitter.emit = (...args) => socket.send(JSON.stringify(args));
+socketEmitter.emit = (...args) => {
+	const send = () => socket.send(JSON.stringify(args));
+	if (socketEmitter.connection) socketEmitter.connection.then(send);
+	else send();
+};
+
 socketEmitter.close = () => {
 	socketEmitter.removeAllListeners();
 	socket.close();
@@ -82,12 +96,17 @@ socketEmitter.close = () => {
 
 function setupSocket () {
 	socket = new WebSocket(`${settings.secure ? 'wss' : 'ws'}://${settings.base}/socket`);
-	socket.onopen = () => {
-		socket.send('token:' + localStorage.getItem('token'));
-		socketEmitter.__emit('open');
-	};
+	socketEmitter.connection = new Promise(resolve => {
+		socket.onopen = () => {
+			socket.send('token:' + localStorage.getItem('token'));
+			socketEmitter.connection = null;
+			resolve();
+			socketEmitter.__emit('open');
+		};
+	});
+
 	socket.onmessage = e => {
-		const args = JSON.parse(e.data);
+		var args = JSON.parse(e.data);
 		if (args.event === 'token') localStorage.setItem('token', args.msg);
 		socketEmitter.__emit(args.event, args);
 	};
@@ -98,10 +117,10 @@ function setupSocket () {
 	};
 }
 
-export default new Proxy({ settings }, {
+var API = new Proxy({ settings }, {
 	get (obj, controller) {
 		if (controller in obj) return obj[controller];
-		else if (controller == 'socket') {
+		else if (controller.toLowerCase() == 'socket') {
 			if (!socket) setupSocket();
 			return socketEmitter;
 		} else {
@@ -113,3 +132,12 @@ export default new Proxy({ settings }, {
 		}
 	}
 });
+
+if (module) {
+	settings.dev(process.env.NODE_ENV === 'development');
+	module.exports = API;
+	module.exports.default = module.exports;
+} else {
+	// Vanilla fallback
+	window.API = API;
+}
