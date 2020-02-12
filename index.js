@@ -74,8 +74,15 @@ function sendAPI (controller, action, data = null) {
 		xhr.onload = () => {
 			var newToken = xhr.getResponseHeader('token');
 			if (newToken) localStorage.setItem('token', newToken);
-			try { resolve(JSON.parse(xhr.response)); }
-			catch { resolve({ success: xhr.status === 200, code: xhr.status, msg: xhr.response }); }
+			switch (xhr.getResponseHeader('content-type')) {
+				case 'application/json':
+					try { resolve({ success: xhr.status == 200, code: xhr.status, msg: JSON.parse(xhr.response) }); }
+					catch (err) { resolve({ success: false, code: -1, msg: err }); }
+					break;
+				default:
+					resolve({ success: xhr.status == 200, code: xhr.status, msg: xhr.response });
+					break;
+			}
 		};
 	});
 }
@@ -117,7 +124,25 @@ function setupSocket () {
 	};
 }
 
-var API = new Proxy({ settings }, {
+function post (url, data, newtab = false) {
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = url;
+    if (newtab) form.target = '_blank';
+
+    Object.entries(data).forEach(function (pair) {
+        var field = document.createElement('input');
+        field.name = pair[0];
+        field.value = pair[1];
+        form.appendChild(field);
+    });
+
+    document.body.appendChild(form);
+    form.submit();
+    form.remove();
+}
+
+var API = new Proxy({ settings, post, send: sendAPI }, {
 	get (obj, controller) {
 		if (controller in obj) return obj[controller];
 		else if (controller.toLowerCase() == 'socket') {
