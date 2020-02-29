@@ -79,10 +79,12 @@ API.settings.secure = true;
 API.settings.base = 'yourdomain.com:8080/api';
 ```
 
+Where `yourdomain.com` is your domain or IP address.
+
 ## Settings example #2
 
 ```js
-const API = require('dc-api-client');
+import API from 'dc-api-client';
 
 API.settings.secure = false;
 API.settings.base = `${location.hostname}:8080/api`;
