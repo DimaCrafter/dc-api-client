@@ -66,9 +66,27 @@ Settings strored in `API.settings` object.
 
 | Field  | Type       | Note                                                               |
 |--------|------------|--------------------------------------------------------------------|
-| secure | `Boolean`  | If `true` HTTPS will be used                                       |
+| secure | `Boolean`  | `true` - use HTTPS / `false` - use HTTP                            |
 | base   | `String`   | Hostname with prefix path                                          |
 | dev    | `Function` | Enables or disables dev mode as setter, returns `Bolean` as getter |
+
+## Settings example #1
+
+```js
+const API = require('dc-api-client');
+
+API.settings.secure = true;
+API.settings.base = 'yourdomain.com:8080/api';
+```
+
+## Settings example #2
+
+```js
+const API = require('dc-api-client');
+
+API.settings.secure = false;
+API.settings.base = `${location.hostname}:8080/api`;
+```
 
 ## Tokens
 
