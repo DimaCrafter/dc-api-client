@@ -1,5 +1,3 @@
-// TODO: remove dependency
-var EventEmitter = require('events');
 function packData (data) {
 	if (!data) return null;
 	let objects = [],
@@ -21,12 +19,11 @@ function packData (data) {
 		if (!value) return;
 		if (value instanceof Blob) {
 			if (!fd) fd = new FormData();
-			fd.append([...keys, key].join('.'), value);
+			fd.append(keys.join('.') + '.' + key, value);
 			return;
 		}
 
-		var found = objects.find(function (v) { return v === value; });
-		if (!found) {
+		if (!objects.find(v => v === value)) {
 			keys.push(key);
 			stack.unshift(value);
 			objects.push(value);
@@ -43,9 +40,9 @@ function packData (data) {
 	}
 }
 
-var API;
-var isDev;
-var settings = {
+let API;
+let isDev;
+const settings = {
 	base: window.location.hostname,
 	secure: true,
 	dev: function (enabled = null) {
@@ -57,23 +54,23 @@ var settings = {
 
 function sendAPI (controller, action, data = null) {
 	return new Promise(resolve => {
-		var url = `${settings.secure ? 'https' : 'http'}://${settings.base}/${controller}/${action}`;
-		var token = localStorage.getItem('token');
-		data = packData(data);
-
 		var xhr = new XMLHttpRequest();
-		xhr.open(data ? 'POST' : 'GET', url);
-		if (typeof data === 'string') xhr.setRequestHeader('Content-type', 'application/json');
+		data = packData(data);
+		xhr.open(data ? 'POST' : 'GET', `${settings.secure ? 'https' : 'http'}://${settings.base}/${controller}/${action}`);
+		if (typeof data == 'string') xhr.setRequestHeader('Content-type', 'application/json');
+
+		let token = localStorage.getItem('token');
 		if (token) xhr.setRequestHeader('Token', token);
 
-		xhr.send(data);
+		if (data) xhr.send(data);
 		xhr.onerror = () => {
 			resolve({ success: false, code: xhr.status, msg: xhr.statusText || xhr.response || 'NetworkError' });
 		};
 
 		xhr.onload = () => {
-			var newToken = xhr.getResponseHeader('token');
-			if (newToken) localStorage.setItem('token', newToken);
+			token = xhr.getResponseHeader('token');
+			if (token) localStorage.setItem('token', token);
+
 			switch (xhr.getResponseHeader('content-type')) {
 				case 'application/json':
 					try { resolve({ success: xhr.status == 200, code: xhr.status, msg: JSON.parse(xhr.response) }); }
@@ -88,17 +85,45 @@ function sendAPI (controller, action, data = null) {
 }
 
 var socket = null;
-var socketEmitter = new EventEmitter();
-socketEmitter.__emit = socketEmitter.emit;
-socketEmitter.emit = (...args) => {
-	const send = () => socket.send(JSON.stringify(args));
-	if (socketEmitter.connection) socketEmitter.connection.then(send);
-	else send();
-};
+var socketEmitter = {
+	_events: {},
+	_dispatch (event, args) {
+		const listeners = this._events[event];
+		if (listeners) {
+			for (let i = 0; i < listeners.length; i++) {
+				listeners[i].apply(null, args);
+				if (listeners[i].once) listeners.splice(i, 1);
+			}
+		}
+	},
 
-socketEmitter.close = () => {
-	socketEmitter.removeAllListeners();
-	socket.close();
+	on: function (event, listener) {
+		if (this._events[event]) this._events[event].push(listener);
+		else this._events[event] = [listener];
+	},
+	once: function (event, listener) {
+		listener.once = true;
+		this.on(event, listener);
+	},
+	off: function (event, listener) {
+		const listeners = this._events[event];
+		if (listeners) {
+			var i = listeners.findIndex(l => l === listener);
+			if (~i) listeners.splice(i, 1);
+		}
+	},
+	emit: function () {
+		let args = [];
+		for (let i = 0; i < arguments.length; i++) args[i] = arguments[i];
+
+		const send = () => socket.send(JSON.stringify(args));
+		if (socketEmitter.connection) socketEmitter.connection.then(send);
+		else send();
+	},
+	close: function () {
+		this._events = {};
+		socket.close();
+	}
 };
 
 function setupSocket () {
@@ -108,18 +133,19 @@ function setupSocket () {
 			socket.send('token:' + localStorage.getItem('token'));
 			socketEmitter.connection = null;
 			resolve();
-			socketEmitter.__emit('open');
+			socketEmitter._dispatch('open');
 		};
 	});
 
 	socket.onmessage = e => {
 		var args = JSON.parse(e.data);
-		if (args.event === 'token') localStorage.setItem('token', args.msg);
-		socketEmitter.__emit(args.event, args);
+		if (args[0] == 'token') localStorage.setItem('token', args[1]);
+		socketEmitter._dispatch(args[0], args.slice(1));
 	};
-	socket.onerror = err => socketEmitter.__emit('error', err);
+
+	socket.onerror = err => socketEmitter._dispatch('error', [err]);
 	socket.onclose = e => {
-		socketEmitter.__emit('close', e);
+		socketEmitter._dispatch('close', [e]);
 		socket = null;
 	};
 }
@@ -142,7 +168,7 @@ function post (url, data, newtab = false) {
     form.remove();
 }
 
-var API = new Proxy({ settings, post, send: sendAPI }, {
+API = new Proxy({ settings, post, send: sendAPI }, {
 	get (obj, controller) {
 		if (controller in obj) return obj[controller];
 		else if (controller.toLowerCase() == 'socket') {
@@ -158,7 +184,7 @@ var API = new Proxy({ settings, post, send: sendAPI }, {
 	}
 });
 
-if (module) {
+if (typeof module != 'undefined') {
 	settings.dev(process.env.NODE_ENV === 'development');
 	module.exports = API;
 	module.exports.default = module.exports;
