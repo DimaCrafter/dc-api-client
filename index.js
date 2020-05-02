@@ -62,7 +62,7 @@ function sendAPI (controller, action, data = null) {
 		let token = localStorage.getItem('token');
 		if (token) xhr.setRequestHeader('Token', token);
 
-		if (data) xhr.send(data);
+		xhr.send(data);
 		xhr.onerror = () => {
 			resolve({ success: false, code: xhr.status, msg: xhr.statusText || xhr.response || 'NetworkError' });
 		};
