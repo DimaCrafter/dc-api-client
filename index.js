@@ -16,10 +16,12 @@ function packData (data) {
 			keys.pop();
 		}
 
-		if (!value) return;
+		if (value === undefined) return;
 		if (value instanceof Blob) {
 			if (!fd) fd = new FormData();
-			fd.append(keys.join('.') + '.' + key, value);
+			key = keys.join('.') + '.' + key;
+			if (key[0] == '.') key = key.slice(1);
+			fd.append(key, value);
 			return;
 		}
 
