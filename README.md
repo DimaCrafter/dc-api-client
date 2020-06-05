@@ -65,11 +65,13 @@ Example console output:
 
 Settings strored in `API.settings` object.
 
-| Field  | Type       | Note                                                               |
-|--------|------------|--------------------------------------------------------------------|
-| secure | `Boolean`  | `true` - use HTTPS / `false` - use HTTP                            |
-| base   | `String`   | Hostname with prefix path                                          |
-| dev    | `Function` | Enables or disables dev mode as setter, returns `Bolean` as getter |
+| Field             | Type       | Note                                                                |
+|-------------------|------------|---------------------------------------------------------------------|
+| secure            | `Boolean`  | `true` - use HTTPS / `false` - use HTTP                             |
+| base              | `String`   | Hostname with prefix path                                           |
+| dev               | `Function` | Enables or disables dev mode as setter, returns `Boolean` as getter |
+| reconnectAttempts | `Number`   | Count of WebSocket reconnection attempts, `-1 == ∞` (default: 5)    |
+| reconnectTimeout  | `Number`   | WebSocket reconnection timeout is seconds (default: 2.5)            |
 
 ### Settings example #1
 
@@ -111,6 +113,34 @@ API.Socket: {
     // Removing trigger for <event>
     off (event: String, listener: (...arguments: any[]) => {});
 };
+```
+
+### Scoket events
+
+```js
+API.Socket.on('open', isReconnect => {
+    if (isReconnect) console.log('Reconnected!');
+    else console.log('Connected for first time');
+});
+
+API.Socket.on('reconnect', attempt => {
+    // This event will be fired BEFORE reconection
+    if (API.settings.reconnectAttempts == -1) console.log(`[${attempt}/∞] Reconnecting...`);
+    else console.log(`[${attempt}/${API.settings.reconnectAttempts}] Reconnecting...`);
+});
+
+API.Socket.on('close', (code, reason) => {
+    // Reconnection willn't trigger this event,
+    // i.e. on full connection lost
+    console.log(`Connection was closed with code ${code}: ${reason || 'No reason provided'}`);
+    // e - CloseEvent object (browser event)
+});
+
+API.Socket.on('<custon-event-name>', (a, b) => {
+    // Any event triggered on API server
+    // Ex.: this.emit('<custon-event-name>', 7, 5);
+    console.log('New <custon-event-name> data!', a, b);
+});
 ```
 
 ## Tokens

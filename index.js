@@ -51,7 +51,10 @@ const settings = {
 		if (enabled === null) return isDev;
 		isDev = enabled;
 		if (enabled) window.API = API;
-	}
+	},
+
+	reconnectAttempts: 5,
+	reconnectTimeout: 2.5
 };
 
 function sendAPI (controller, action, data = null) {
@@ -128,14 +131,15 @@ var socketEmitter = {
 	}
 };
 
-function setupSocket () {
+function setupSocket (attempts = 0) {
 	socket = new WebSocket(`${settings.secure ? 'wss' : 'ws'}://${settings.base}/socket`);
 	socketEmitter.connection = new Promise(resolve => {
 		socket.onopen = () => {
 			socket.send('token:' + localStorage.getItem('token'));
 			socketEmitter.connection = null;
 			resolve();
-			socketEmitter._dispatch('open');
+			socketEmitter._dispatch('open', [attempts > 0]);
+			attempts = 0;
 		};
 	});
 
@@ -145,10 +149,14 @@ function setupSocket () {
 		socketEmitter._dispatch(args[0], args.slice(1));
 	};
 
-	socket.onerror = err => socketEmitter._dispatch('error', [err]);
 	socket.onclose = e => {
-		socketEmitter._dispatch('close', [e]);
-		socket = null;
+		if (settings.reconnectAttempts != -1 && attempts == settings.reconnectAttempts) {
+			socketEmitter._dispatch('close', [e.code, e.reason]);
+			socket = null;
+		} else {
+			socketEmitter._dispatch('reconnect', [attempts + 1]);
+			setTimeout(() => setupSocket(++attempts), settings.reconnectTimeout * 1000);
+		}
 	};
 }
 
