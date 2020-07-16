@@ -61,6 +61,13 @@ Example console output:
 }
 ```
 
+## Sending with query string
+
+```js
+API.Test.action(null, { query: 'works' });
+// GET /Test/action?query=works
+```
+
 ## Settings
 
 Settings strored in `API.settings` object.
@@ -162,8 +169,8 @@ API.post(url: String, data: Object, newtab: Boolean = false);
 
 ## Alternative sending
 
-```js
-API.send(controller: String, action: String, data: any, callback: Response => void);
+```ts
+API.send(controller: String, action: String, data: any, query: Object): Promise<Response>;
 ```
 
 ## Vanilla fallback

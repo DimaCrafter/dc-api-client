@@ -57,11 +57,18 @@ const settings = {
 	reconnectTimeout: 2.5
 };
 
-function sendAPI (controller, action, data = null) {
+function sendAPI (controller, action, data = null, query = null) {
 	return new Promise(resolve => {
 		var xhr = new XMLHttpRequest();
 		data = packData(data);
-		xhr.open(data ? 'POST' : 'GET', `${settings.secure ? 'https' : 'http'}://${settings.base}/${controller}/${action}`);
+
+		if (query) {
+			query = '?' + Object.entries(query).map(entry => entry[0] + '=' + entry[1]).join('&');
+		} else {
+			query = '';
+		}
+
+		xhr.open(data ? 'POST' : 'GET', `${settings.secure ? 'https' : 'http'}://${settings.base}/${controller}/${action}${query}`);
 		if (typeof data == 'string') xhr.setRequestHeader('Content-type', 'application/json');
 
 		let token = localStorage.getItem('token');
@@ -187,7 +194,7 @@ API = new Proxy({ settings, post, send: sendAPI }, {
 		} else {
 			return new Proxy({}, {
 				get (obj, action) {
-					return data => sendAPI(controller, action, data);
+					return (data, query) => sendAPI(controller, action, data, query);
 				}
 			});
 		}
