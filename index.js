@@ -61,7 +61,7 @@ function sendAPI (controller, action, data = null, query = null) {
 	return new Promise(resolve => {
 		var xhr = new XMLHttpRequest();
 		data = packData(data);
-
+		
 		if (query) {
 			query = '?' + Object.entries(query).map(entry => entry[0] + '=' + entry[1]).join('&');
 		} else {
@@ -71,8 +71,8 @@ function sendAPI (controller, action, data = null, query = null) {
 		xhr.open(data ? 'POST' : 'GET', `${settings.secure ? 'https' : 'http'}://${settings.base}/${controller}/${action}${query}`);
 		if (typeof data == 'string') xhr.setRequestHeader('Content-type', 'application/json');
 
-		let token = localStorage.getItem('token');
-		if (token) xhr.setRequestHeader('Token', token);
+		let session = localStorage.getItem('session');
+		if (session) xhr.setRequestHeader('Session', session);
 
 		xhr.send(data);
 		xhr.onerror = () => {
@@ -80,8 +80,8 @@ function sendAPI (controller, action, data = null, query = null) {
 		};
 
 		xhr.onload = () => {
-			token = xhr.getResponseHeader('token');
-			if (token) localStorage.setItem('token', token);
+			session = xhr.getResponseHeader('session');
+			if (session) localStorage.setItem('session', session);
 
 			switch (xhr.getResponseHeader('content-type')) {
 				case 'application/json':
@@ -142,7 +142,7 @@ function setupSocket (attempts = 0) {
 	socket = new WebSocket(`${settings.secure ? 'wss' : 'ws'}://${settings.base}/socket`);
 	socketEmitter.connection = new Promise(resolve => {
 		socket.onopen = () => {
-			socket.send('token:' + localStorage.getItem('token'));
+			socket.send('session:' + localStorage.getItem('session'));
 			socketEmitter.connection = null;
 			resolve();
 			socketEmitter._dispatch('open', [attempts > 0]);
@@ -152,7 +152,7 @@ function setupSocket (attempts = 0) {
 
 	socket.onmessage = e => {
 		var args = JSON.parse(e.data);
-		if (args[0] == 'token') localStorage.setItem('token', args[1]);
+		if (args[0] == 'session') localStorage.setItem('session', args[1]);
 		socketEmitter._dispatch(args[0], args.slice(1));
 	};
 

@@ -150,14 +150,14 @@ API.Socket.on('<custon-event-name>', (a, b) => {
 });
 ```
 
-## Tokens
+<!-- ## Tokens
 
 Token will be delivered to backend with `token` header.
 You can override token from backend by sending `token` header,
 you don't should send this header with all requests.
 
 Current token stores in localStorage. Read with `localStorage.getItem('token')`
-or write `localStorage.getItem('token', 'new-token')`.
+or write `localStorage.getItem('token', 'new-token')`. -->
 
 ## POST utility
 
