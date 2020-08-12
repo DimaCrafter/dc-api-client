@@ -39,6 +39,38 @@ interface IAPIResponse {
 	msg: any;
 }
 
+type EventListener = (...args: any[]) => void;
+declare class Socket {
+	/**
+	 * Registers event listener
+	 * @param event Event name
+	 * @param listener Event listener to register
+	 */
+	on (event: string, listener: EventListener): void;
+	/**
+	 * Registers event listener for one time execution
+	 * @param event Event name
+	 * @param listener Event listener to register
+	 */
+	once (event: string, listener: EventListener): void;
+	/**
+	 * Unregisters event listener
+	 * @param event Event name
+	 * @param listener Event listener to unregister
+	 */
+	off (event: string, listener: EventListener): void;
+	/**
+	 * Sends WebSocket message to API server
+	 * @param event Event name
+	 * @param args Any JSON compitable arguments for event handler
+	 */
+	emit (event: string, ...args: any[]): void;
+	/**
+	 * Closes socket connection
+	 */
+	close (): void;
+}
+
 declare class APIInstance {
 	/**
 	 * Stores API connection settings
@@ -52,6 +84,15 @@ declare class APIInstance {
 	 * @param query GET query pairs object, `null` by default
 	 */
 	public send (controller: string, action: string, data: any, query: object): Promise<IAPIResponse>;
+
+	/**
+	 * WebSocket connection wrapper
+	 */
+	public socket: Socket;
+	/**
+	 * WebSocket connection wrapper
+	 */
+	public Socket: Socket;
 
 	[key: string]: any;
 	// TODO: understand and fix

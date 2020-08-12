@@ -150,6 +150,31 @@ API.Socket.on('<custon-event-name>', (a, b) => {
 });
 ```
 
+## Multiple API connections
+
+main.js:
+
+```js
+import API from 'dc-api-client'
+// Registering `ExampleAPI` in `API.instances`, this method also returns created instance
+API.registerInstance('ExampleAPI', { base: 'api.example.com', secure: false });
+```
+
+other.js
+
+```js
+import API from 'dc-api-client'
+const { ExampleAPI } = API.instances;
+
+// http://api.example.com/Controller/action
+const res = await ExampleAPI.Controller.action();
+
+// Also works with WebSocket connection
+// ws://api.example.com/socket
+ExampleAPI.Socket.on('test', () => console.log('Test received'));
+ExampleAPI.Socket.emit('send-me-test');
+```
+
 <!-- ## Tokens
 
 Token will be delivered to backend with `token` header.
@@ -174,6 +199,9 @@ API.send(controller: String, action: String, data: any, query: Object): Promise<
 ```
 
 ## Vanilla fallback
+
+You can use [prebundled version (`browser.js` ~5 kb)](./browser.js) in browser without webpack,
+parcel, browserify and other bundlers.
 
 Compatibility:
 
