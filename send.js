@@ -66,18 +66,27 @@ module.exports = function (settings, controller, action, data = null, query = nu
 			resolve({ success: false, code: xhr.status, msg: xhr.statusText || xhr.response || 'NetworkError' });
 		};
 
+		let contentType;
+		xhr.onreadystatechange = () => {
+			switch (xhr.readyState) {
+				case xhr.HEADERS_RECEIVED:
+					contentType = xhr.getResponseHeader('content-type');
+					if (contentType == 'application/octet-stream' || contentType.startsWith('image/')) {
+						xhr.responseType = 'blob';
+					}
+					break;
+			}
+		};
+
 		xhr.onload = () => {
 			session = xhr.getResponseHeader('session');
 			if (session) localStorage.setItem('session', session);
 
-			switch (xhr.getResponseHeader('content-type')) {
-				case 'application/json':
-					try { resolve({ success: xhr.status == 200, code: xhr.status, msg: JSON.parse(xhr.response) }); }
-					catch (err) { resolve({ success: false, code: -1, msg: err }); }
-					break;
-				default:
-					resolve({ success: xhr.status == 200, code: xhr.status, msg: xhr.response });
-					break;
+			if (contentType == 'application/json') {
+				try { resolve({ success: xhr.status == 200, code: xhr.status, msg: JSON.parse(xhr.response) }); }
+				catch (err) { resolve({ success: false, code: -1, msg: err }); }
+			} else {
+				resolve({ success: xhr.status == 200, code: xhr.status, msg: xhr.response });
 			}
 		};
 	});
