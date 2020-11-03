@@ -23,7 +23,7 @@ class SocketEmitter {
 			};
 	
 			this._socket.onclose = e => {
-				if (API.settings.reconnectAttempts != -1 && attempts == API.settings.reconnectAttempts) {
+				if (this._socket._disableReconnect || API.settings.reconnectAttempts != -1 && attempts == API.settings.reconnectAttempts) {
 					this._dispatch('close', [e.code, e.reason]);
 					this._socket = null;
 				} else {
@@ -74,14 +74,19 @@ class SocketEmitter {
 	}
 
 	close () {
-		this._events = {};
+		this._socket._disableReconnect = true;
 		this._socket.close();
+		this._dispatch('close', [0, 'ManualClose']);
+		this._events = {};
 	}
 }
 
 module.exports = API => {
 	if (!API._socketEmitter) {
 		API._socketEmitter = new SocketEmitter(API);
+		API._socketEmitter.on('close', () => {
+			API._socketEmitter = null;
+		});
 	}
 
 	return API._socketEmitter;
