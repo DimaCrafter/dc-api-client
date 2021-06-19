@@ -47,14 +47,14 @@ API = wrap({
 		form.method = 'POST';
 		form.action = url;
 		if (newtab) form.target = '_blank';
-	
+
 		Object.entries(data).forEach(function (pair) {
 			var field = document.createElement('input');
 			field.name = pair[0];
 			field.value = pair[1];
 			form.appendChild(field);
 		});
-	
+
 		document.body.appendChild(form);
 		form.submit();
 		form.remove();
@@ -68,7 +68,7 @@ API = wrap({
 	}
 });
 
-if (typeof module != 'undefined' && typeof process != 'undefined') {
+if (typeof module != 'undefined' && (typeof process != 'undefined' || module.id)) {
 	API.settings.dev(process.env.NODE_ENV === 'development');
 	module.exports = API;
 	module.exports.default = module.exports;
