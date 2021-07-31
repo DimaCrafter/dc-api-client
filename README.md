@@ -4,7 +4,9 @@ Primary designed for [dc-api-core](https://github.com/DimaCrafter/dc-api-core).
 
 [![NPM](https://nodei.co/npm/dc-api-client.png)](https://npmjs.com/package/dc-api-client)
 
-## Import dc-api-client to your project
+## Basic usage
+
+### Import dc-api-client to your project
 
 ```js
 // Use Node.JS require
@@ -13,13 +15,13 @@ const API = require('dc-api-client');
 import API from 'dc-api-client'
 ```
 
-## Make request to backend
+### Make request to backend
 
 ```js
 const res = await API.Controller.action({
     // Any supported data types.
-    // It can be any JSON-compitable type, such as strings, objects etc.
-    // Also you can use any Blob/File value.
+    // It can be any JSON-compitable type, such as string, object etc.
+    // Also you can use Blob or File value.
 });
 ```
 
@@ -27,7 +29,7 @@ const res = await API.Controller.action({
 * `action` - your action name in controller
 * `res` - Response object
 
-## Response object
+### Response object
 
 | Name    | Type      | Note                                                                          |
 |---------|-----------|-------------------------------------------------------------------------------|
@@ -35,7 +37,7 @@ const res = await API.Controller.action({
 | code    | `Number`  | HTTP response code                                                            |
 | msg     | `any`     | If backend returned JSON, it will be parsed, otherwise contains raw response. |
 
-## Example
+### Example
 
 Sending user data to `register` method in `Auth` controller.
 
@@ -61,7 +63,7 @@ Example console output:
 }
 ```
 
-## Sending with query string
+### Sending request with query string
 
 ```js
 API.Test.action(null, { query: 'works' });
@@ -85,6 +87,7 @@ Settings strored in `API.settings` object.
 ```js
 const API = require('dc-api-client');
 
+// Redurant because HTTPS enabled by default
 API.settings.secure = true;
 API.settings.base = 'yourdomain.com:8080/api';
 ```
@@ -150,7 +153,9 @@ API.Socket.on('<custon-event-name>', (a, b) => {
 });
 ```
 
-## Multiple API connections
+## Advanced features
+
+### Multiple API connections
 
 main.js:
 
@@ -169,22 +174,13 @@ const { ExampleAPI } = API.instances;
 // http://api.example.com/Controller/action
 const res = await ExampleAPI.Controller.action();
 
-// Also works with WebSocket connection
+// Works with WebSocket connection
 // ws://api.example.com/socket
 ExampleAPI.Socket.on('test', () => console.log('Test received'));
 ExampleAPI.Socket.emit('send-me-test');
 ```
 
-<!-- ## Tokens
-
-Token will be delivered to backend with `token` header.
-You can override token from backend by sending `token` header,
-you don't should send this header with all requests.
-
-Current token stores in localStorage. Read with `localStorage.getItem('token')`
-or write `localStorage.getItem('token', 'new-token')`. -->
-
-## POST utility
+### POST utility
 
 Sends POST request in browser with form.
 
@@ -192,16 +188,22 @@ Sends POST request in browser with form.
 API.post(url: String, data: Object, newtab: Boolean = false);
 ```
 
-## Alternative sending
+### Alternative request sending
 
 ```ts
 API.send(controller: String, action: String, data: any, query: Object): Promise<Response>;
 ```
 
+## Known issues
+
+### `dc-api-client` doesn't work properly with Rollup
+
+Inject `NODE_ENV` variable with `process` object manually or use `rollup-plugin-inject-process-env`.
+
 ## Vanilla fallback
 
 You can use [prebundled version (`browser.js` ~5 kb)](./browser.js) in browser without webpack,
-parcel, browserify and other bundlers.
+parcel, browserify or other bundlers.
 
 Compatibility:
 

@@ -31,11 +31,18 @@ declare class Settings {
 	 * WebSocket reconnection timeout in seconds, `2.5` by default
 	 */
 	reconnectTimeout?: number;
+	/**
+	 * Transform controller and antion names into kebab-case
+	 */
+	useKebab?: boolean;
 }
 
-interface IAPIResponse {
+interface APIResponse {
+	/** `true` if response code is `200` */
 	success: boolean;
+	/** HTTP response code */
 	code: number;
+	/** Server response */
 	msg: any;
 }
 
@@ -83,7 +90,7 @@ declare class APIInstance {
 	 * @param data Any JSON compitable object, `null` by default
 	 * @param query GET query pairs object, `null` by default
 	 */
-	public send (controller: string, action: string, data: any, query: object): Promise<IAPIResponse>;
+	public send (controller: string, action: string, data: any, query: object): Promise<APIResponse>;
 
 	/**
 	 * WebSocket connection wrapper
@@ -94,17 +101,16 @@ declare class APIInstance {
 	 */
 	public Socket: Socket;
 
-	[key: string]: any;
-	// TODO: understand and fix
-	// [key: string]: {
-	// 	/**
-	// 	 * Sends API request
-	// 	 * @param data Any JSON compitable object, `null` by default
-	// 	 * @param query GET query pairs object, `null` by default
-	// 	 */
-	// 	[key: string]: (data: any, query: object) => void
-	// }
+	[key: string]: {
+		/**
+		 * Sends API request
+		 * @param data Any JSON compitable object, `null` by default
+		 * @param query GET query pairs object, `null` by default
+		 */
+		[key: string]: (data: any, query: object) => Promise<APIResponse>;
+	}
 }
+
 
 declare class RootAPIInstance extends APIInstance {
 	/**
@@ -124,5 +130,4 @@ declare class RootAPIInstance extends APIInstance {
 	public post (url: string, data: object, newtab: boolean): void;
 }
 
-// @ts-ignore
 export default new RootAPIInstance();
