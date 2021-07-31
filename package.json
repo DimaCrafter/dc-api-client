@@ -3,13 +3,14 @@
 	"version": "1.0.9",
 	"description": "HTTP API client primary designed for dc-api-core",
 	"author": "DimaCrafter",
-	"main": "index.js",
 	"homepage": "https://github.com/DimaCrafter/dc-api-client",
 	"bugs": "https://github.com/DimaCrafter/dc-api-client/issues",
 	"repository": "github.com:DimaCrafter/dc-api-client",
 	"license": "MIT",
 
+	"main": "index.js",
+	"browser": "browser.js",
 	"scripts": {
-		"prepublishOnly": "parcel build index.js --no-cache --no-source-maps --out-dir . -o browser.js --target node"
+		"prepublishOnly": "parcel build index.browser.js --no-cache --no-source-maps --target browser --dist-dir ."
 	}
 }

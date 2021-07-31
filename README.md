@@ -202,7 +202,7 @@ Inject `NODE_ENV` variable with `process` object manually or use `rollup-plugin-
 
 ## Vanilla fallback
 
-You can use [prebundled version (`browser.js` ~5 kb)](./browser.js) in browser without webpack,
+You can use [prebundled version (`browser.js` ~4 kb)](./browser.js) in browser without webpack,
 parcel, browserify or other bundlers.
 
 Compatibility:
