@@ -1,6 +1,6 @@
 {
 	"name": "dc-api-client",
-	"version": "1.0.8-2",
+	"version": "1.0.9",
 	"description": "HTTP API client primary designed for dc-api-core",
 	"author": "DimaCrafter",
 	"main": "index.js",

@@ -1,3 +1,5 @@
+const { camelToKebab } = require("./case-convert");
+
 function packData (data) {
 	if (!data) return null;
 	let objects = [],
@@ -48,11 +50,16 @@ module.exports = function (settings, controller, action, data = null, query = nu
 	return new Promise(resolve => {
 		var xhr = new XMLHttpRequest();
 		data = packData(data);
-		
+
 		if (query) {
 			query = '?' + Object.entries(query).map(entry => entry[0] + '=' + entry[1]).join('&');
 		} else {
 			query = '';
+		}
+
+		if (settings.useKebab) {
+			controller = camelToKebab(controller);
+			action = camelToKebab(action);
 		}
 
 		xhr.open(data ? 'POST' : 'GET', `${settings.secure ? 'https' : 'http'}://${settings.base}/${controller}/${action}${query}`);

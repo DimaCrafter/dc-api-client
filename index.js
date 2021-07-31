@@ -14,6 +14,7 @@ class Settings {
 		thisDefault(this, settings, 'secure', true);
 		thisDefault(this, settings, 'reconnectAttempts', 5);
 		thisDefault(this, settings, 'reconnectTimeout', 2.5);
+		thisDefault(this, settings, 'useKebab', false);
 	}
 
 	dev (enabled = null) {
@@ -24,6 +25,7 @@ class Settings {
 }
 
 function wrap (obj) {
+	obj.send = (...args) => sendAPI(obj.settings, ...args);
 	return new Proxy(obj, {
 		get (_, controller) {
 			if (controller in obj) return obj[controller];
