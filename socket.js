@@ -1,39 +1,41 @@
+const { camelToKebab } = require('./case-convert');
+
 class SocketEmitter {
-	constructor (API) {
+	constructor (API, path) {
 		this._events = {};
 		this._connection = null;
+		this._settings = API.settings;
 		this.socket = null;
+		this.path = path;
+	}
 
-		const connect = attempts => {
-			this._socket = new WebSocket(`${API.settings.secure ? 'wss' : 'ws'}://${API.settings.base}/socket`);
-			this._connection = new Promise(resolve => {
-				this._socket.onopen = () => {
-					this._socket.send('session:' + localStorage.getItem('session'));
-					this._connection = null;
-					resolve();
-					this._dispatch('open', [attempts > 0]);
-					attempts = 0;
-				};
-			});
-	
-			this._socket.onmessage = e => {
-				var args = JSON.parse(e.data);
-				if (args[0] == 'session') localStorage.setItem('session', args[1]);
-				this._dispatch(args[0], args.slice(1));
+	connect (attempts = 0) {
+		this._socket = new WebSocket(`${this._settings.secure ? 'wss' : 'ws'}://${this._settings.base}/${this.path}`);
+		this._connection = new Promise(resolve => {
+			this._socket.onopen = () => {
+				this._socket.send('session:' + localStorage.getItem('session'));
+				this._connection = null;
+				resolve();
+				this._dispatch('open', [attempts > 0]);
+				attempts = 0;
 			};
-	
-			this._socket.onclose = e => {
-				if (this._socket._disableReconnect || API.settings.reconnectAttempts != -1 && attempts == API.settings.reconnectAttempts) {
-					this._dispatch('close', [e.code, e.reason]);
-					this._socket = null;
-				} else {
-					this._dispatch('reconnect', [attempts + 1]);
-					setTimeout(() => connect(++attempts), API.settings.reconnectTimeout * 1000);
-				}
-			};
+		});
+
+		this._socket.onmessage = e => {
+			var args = JSON.parse(e.data);
+			if (args[0] == 'session') localStorage.setItem('session', args[1]);
+			this._dispatch(args[0], args.slice(1));
 		};
 
-		connect(0);
+		this._socket.onclose = e => {
+			if (this._socket._disableReconnect || this._settings.reconnectAttempts != -1 && attempts == this._settings.reconnectAttempts) {
+				this._dispatch('close', [e.code, e.reason]);
+				this._socket = null;
+			} else {
+				this._dispatch('reconnect', [attempts + 1]);
+				setTimeout(() => this.connect(++attempts), this._settings.reconnectTimeout * 1000);
+			}
+		};
 	}
 
 	_dispatch (event, args) {
@@ -81,13 +83,9 @@ class SocketEmitter {
 	}
 }
 
-module.exports = API => {
-	if (!API._socketEmitter) {
-		API._socketEmitter = new SocketEmitter(API);
-		API._socketEmitter.on('close', () => {
-			API._socketEmitter = null;
-		});
-	}
-
-	return API._socketEmitter;
-};
+exports.initSockets = API => API._sockets = {};
+exports.registerSocket = (API, name) => API._sockets[name] = new SocketEmitter(API, camelToKebab(name));
+exports.getSocket = (API, name) => {
+	const emitter = API._sockets[name];
+	if (!emitter._connection) emitter.connect();
+}

@@ -47,7 +47,12 @@ interface APIResponse {
 }
 
 type EventListener = (...args: any[]) => void;
-declare class Socket {
+declare interface Socket {
+	/** Vanilla socket connection object */
+	socket: WebSocket;
+	/** WebSocket endpoint path without starting slash */
+	path: string;
+
 	/**
 	 * Registers event listener
 	 * @param event Event name
@@ -101,7 +106,7 @@ declare class APIInstance {
 	 */
 	public Socket: Socket;
 
-	[key: string]: {
+	[key: string]: Socket | {
 		/**
 		 * Sends API request
 		 * @param data Any JSON compitable object, `null` by default

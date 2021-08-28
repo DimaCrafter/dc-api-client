@@ -1,5 +1,5 @@
 const sendAPI = require('./send');
-const getSocket = require('./socket');
+const { initSockets, registerSocket, getSocket } = require('./socket');
 
 function thisDefault (ctx, obj, prop, value) {
 	if (typeof obj[prop] == 'undefined') ctx[prop] = value;
@@ -18,7 +18,9 @@ class Settings {
 }
 
 function wrap (obj) {
+	initSockets(obj);
 	obj.send = (...args) => sendAPI(obj.settings, ...args);
+
 	return new Proxy(obj, {
 		get (_, controller) {
 			if (controller in obj) return obj[controller];
@@ -60,7 +62,9 @@ API = wrap({
 		const instance = wrap({ settings: new Settings(settings) });
 		this.instances[name] = instance
 		return instance;
-	}
+	},
+
+	registerSocket (controllerName) { return registerSocket(this, controllerName); }
 });
 
 module.exports = API;
