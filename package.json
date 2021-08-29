@@ -1,16 +1,13 @@
 {
 	"name": "dc-api-client",
-	"version": "1.1.0",
+	"version": "1.1.0-2",
 	"description": "HTTP API client primary designed for dc-api-core",
 	"author": "DimaCrafter",
 	"homepage": "https://github.com/DimaCrafter/dc-api-client",
 	"bugs": "https://github.com/DimaCrafter/dc-api-client/issues",
 	"repository": "github.com:DimaCrafter/dc-api-client",
 	"license": "MIT",
-
-	"main": "index.js",
-	"browser": "browser.js",
 	"scripts": {
-		"prepublishOnly": "parcel build index.browser.js --no-cache --no-source-maps --target browser --dist-dir ."
+		"install-peers": "yarn add -P --pure-lockfile browserify uglifyify browser-pack-flat"
 	}
 }

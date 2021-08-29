@@ -8,4 +8,5 @@ API.settings.dev = (enabled = null) => {
 	if (enabled) window.API = API;
 };
 
-module.exports.default = module.exports = API;
+exports.__esModule = true;
+exports.default = API;
