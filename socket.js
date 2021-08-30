@@ -13,7 +13,7 @@ class SocketEmitter {
 		this._socket = new WebSocket(`${this._settings.secure ? 'wss' : 'ws'}://${this._settings.base}/${this.path}`);
 		this._connection = new Promise(resolve => {
 			this._socket.onopen = () => {
-				this._socket.send('session:' + localStorage.getItem('session'));
+				this._socket.send('["session",' + localStorage.getItem('session') + ']');
 				this._connection = null;
 				resolve();
 				this._dispatch('open', [attempts > 0]);
@@ -23,7 +23,7 @@ class SocketEmitter {
 
 		this._socket.onmessage = e => {
 			var args = JSON.parse(e.data);
-			if (args[0] == 'session') localStorage.setItem('session', args[1]);
+			if (args[0] == 'session') localStorage.setItem('session', JSON.stringify(args[1]));
 			this._dispatch(args[0], args.slice(1));
 		};
 
