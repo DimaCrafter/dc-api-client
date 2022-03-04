@@ -38,6 +38,9 @@ function wrap (obj) {
 }
 
 API = wrap({
+	get default () { return this; },
+	get __esModule () { return true; },
+
 	settings: new Settings(),
 	post (url, data, newtab = false) {
 		var form = document.createElement('form');

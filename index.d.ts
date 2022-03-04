@@ -32,7 +32,7 @@ declare class Settings {
 	 */
 	reconnectTimeout?: number;
 	/**
-	 * Transform controller and antion names into kebab-case
+	 * Transform controller and action names into kebab-case
 	 */
 	useKebab?: boolean;
 }
@@ -106,13 +106,13 @@ declare class APIInstance {
 	 */
 	public Socket: Socket;
 
-	[key: string]: Socket | {
+	[key: string]: Socket & {
 		/**
 		 * Sends API request
 		 * @param data Any JSON compitable object, `null` by default
 		 * @param query GET query pairs object, `null` by default
 		 */
-		[key: string]: (data: any, query: object) => Promise<APIResponse>;
+		[key: string]: (data?: any, query?: object) => Promise<APIResponse>;
 	}
 }
 
