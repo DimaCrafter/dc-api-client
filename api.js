@@ -38,7 +38,7 @@ function wrap (obj) {
 }
 
 API = wrap({
-	get default () { return this; },
+	get default () { return API; },
 	get __esModule () { return true; },
 
 	settings: new Settings(),
