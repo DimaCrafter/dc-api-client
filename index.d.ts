@@ -74,7 +74,7 @@ declare interface Socket {
 	/**
 	 * Sends WebSocket message to API server
 	 * @param event Event name
-	 * @param args Any JSON compitable arguments for event handler
+	 * @param args Any JSON compatible arguments for event handler
 	 */
 	emit (event: string, ...args: any[]): void;
 	/**
@@ -92,7 +92,7 @@ declare class APIInstance {
 	 * Alternative way to send API request
 	 * @param controller Controller name
 	 * @param action Action name
-	 * @param data Any JSON compitable object, `null` by default
+	 * @param data Any JSON compatible object, `null` by default
 	 * @param query GET query pairs object, `null` by default
 	 */
 	public send (controller: string, action: string, data: any, query: object): Promise<APIResponse>;
@@ -109,7 +109,7 @@ declare class APIInstance {
 	[key: string]: Socket & {
 		/**
 		 * Sends API request
-		 * @param data Any JSON compitable object, `null` by default
+		 * @param data Any JSON compatible object, `null` by default
 		 * @param query GET query pairs object, `null` by default
 		 */
 		[key: string]: (data?: any, query?: object) => Promise<APIResponse>;
