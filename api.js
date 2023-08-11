@@ -14,6 +14,7 @@ class Settings {
 		thisDefault(this, settings, 'reconnectAttempts', 5);
 		thisDefault(this, settings, 'reconnectTimeout', 2.5);
 		thisDefault(this, settings, 'useKebab', false);
+		thisDefault(this, settings, 'followRedirects', true);
 	}
 }
 

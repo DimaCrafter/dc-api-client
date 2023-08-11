@@ -78,7 +78,7 @@ module.exports = function (settings, controller, action, data = null, query = nu
 			switch (xhr.readyState) {
 				case xhr.HEADERS_RECEIVED:
 					contentType = xhr.getResponseHeader('content-type');
-					if (contentType == 'application/octet-stream' || contentType.startsWith('image/')) {
+					if (contentType && (contentType == 'application/octet-stream' || contentType.startsWith('image/'))) {
 						xhr.responseType = 'blob';
 					}
 					break;
@@ -93,7 +93,13 @@ module.exports = function (settings, controller, action, data = null, query = nu
 				try { resolve({ success: xhr.status == 200, code: xhr.status, msg: JSON.parse(xhr.response) }); }
 				catch (err) { resolve({ success: false, code: -1, msg: err }); }
 			} else {
-				resolve({ success: xhr.status == 200, code: xhr.status, msg: xhr.response });
+				const redirect = xhr.getResponseHeader('location');
+				if (redirect) {
+					if (settings.followRedirects) location.href = redirect;
+					else resolve({ success: xhr.status == 200, code: xhr.status, msg: redirect });
+				} else {
+					resolve({ success: xhr.status == 200, code: xhr.status, msg: xhr.response });
+				}
 			}
 		};
 	});
