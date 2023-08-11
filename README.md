@@ -19,9 +19,8 @@ import API from 'dc-api-client'
 
 ```js
 const res = await API.Controller.action({
-    // Any supported data types.
-    // It can be any JSON-compitable type, such as string, object etc.
-    // Also you can use Blob or File value.
+    // Any JSON-compatible types are supported.
+    // You can also use Blob or File as the value.
 });
 ```
 
@@ -57,7 +56,7 @@ Example console output:
     success: true,
     code: 200,
     msg: {
-        status: 'user_registred',
+        status: 'user_registered',
         id: 42
     }
 }
@@ -66,33 +65,36 @@ Example console output:
 ### Sending request with query string
 
 ```js
-API.Test.action(null, { query: 'works' });
-// GET /Test/action?query=works
+API.TestController.action(null, { query: 'works' });
+// useKebab = false:    GET /TestController/action?query=works
+// useKebab = true:     GET /test-controller/action?query=works
 ```
 
 ## Settings
 
-Settings strored in `API.settings` object.
+Settings stored in `API.settings` object.
 
-| Field             | Type       | Note                                                                |
-|-------------------|------------|---------------------------------------------------------------------|
-| secure            | `Boolean`  | `true` - use HTTPS / `false` - use HTTP                             |
-| base              | `String`   | Hostname with prefix path                                           |
-| dev               | `Function` | Enables or disables dev mode as setter, returns `Boolean` as getter |
-| reconnectAttempts | `Number`   | Count of WebSocket reconnection attempts, `-1 == ∞` (default: 5)    |
-| reconnectTimeout  | `Number`   | WebSocket reconnection timeout is seconds (default: 2.5)            |
+| Field             | Type     | Default             | Note                                                              |
+|-------------------|----------|---------------------|-------------------------------------------------------------------|
+| secure            | boolean  | `true`              | `true` - use HTTPS, instead of HTTP                               |
+| base              | string   | `location.hostname` | Hostname with prefix path                                         |
+| dev               | Function | Read-only           | Enables or disables dev mode as setter, returns boolean as getter |
+| reconnectAttempts | number   | 5                   | Count of WebSocket reconnection attempts, `-1` is ∞               |
+| reconnectTimeout  | number   | 2.5                 | WebSocket reconnection timeout is seconds                         |
+| useKebab          | boolean  | `false`             | `true` - automatically transform names to kebab-case              |
+| followRedirects   | boolean  | `true`              | `true` - automatically redirect if "Location" header present      |
 
 ### Settings example #1
 
 ```js
 const API = require('dc-api-client');
 
-// Redurant because HTTPS enabled by default
+// Redundant, because HTTPS enabled by default
 API.settings.secure = true;
-API.settings.base = 'yourdomain.com:8080/api';
+API.settings.base = 'your-domain.com:8080/api';
 ```
 
-Where `yourdomain.com` is your domain or IP address.
+Where `your-domain.com` is your domain or IP address.
 
 ### Settings example #2
 
@@ -125,7 +127,7 @@ API.Socket: {
 };
 ```
 
-### Scoket events
+### Socket events
 
 ```js
 API.Socket.on('open', isReconnect => {
@@ -134,22 +136,26 @@ API.Socket.on('open', isReconnect => {
 });
 
 API.Socket.on('reconnect', attempt => {
-    // This event will be fired BEFORE reconection
+    // This event will be fired BEFORE reconnection
     if (API.settings.reconnectAttempts == -1) console.log(`[${attempt}/∞] Reconnecting...`);
     else console.log(`[${attempt}/${API.settings.reconnectAttempts}] Reconnecting...`);
 });
 
 API.Socket.on('close', (code, reason) => {
-    // Reconnection willn't trigger this event,
+    // Reconnection never trigger this event,
     // i.e. on full connection lost
     console.log(`Connection was closed with code ${code}: ${reason || 'No reason provided'}`);
     // e - CloseEvent object (browser event)
 });
 
-API.Socket.on('<custon-event-name>', (a, b) => {
-    // Any event triggered on API server
-    // Ex.: this.emit('<custon-event-name>', 7, 5);
-    console.log('New <custon-event-name> data!', a, b);
+API.Socket.on('<custom-event-name>', (a, b) => {
+    // Handles event emitted from the server
+    // For example, with dc-api-core you can use this line to emit your event
+    //     this.emit('<custom-event-name>', 7, 5);
+    // which will send packet below
+    //     ["<custom-event-name>",7,5]
+    // and will be handled here by dc-api-client
+    console.log('New <custom-event-name> data!', a, b);
 });
 ```
 
@@ -202,7 +208,7 @@ Inject `NODE_ENV` variable with `process` object manually or use `rollup-plugin-
 
 ## Vanilla fallback
 
-You can use [prebundled version (`browser.js` ~4 kb)](./browser.js) in browser without webpack,
+You can use [pre-bundled version (`browser.js` ~4 kb)](./browser.js) in browser without webpack,
 parcel, browserify or other bundlers.
 
 Compatibility:
