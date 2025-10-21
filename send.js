@@ -90,15 +90,15 @@ module.exports = function (settings, controller, action, data = null, query = nu
 			if (session) localStorage.setItem('session', session);
 
 			if (contentType == 'application/json') {
-				try { resolve({ success: xhr.status == 200, code: xhr.status, msg: JSON.parse(xhr.response) }); }
+				try { resolve({ success: xhr.status < 400, code: xhr.status, msg: JSON.parse(xhr.response) }); }
 				catch (err) { resolve({ success: false, code: -1, msg: err }); }
 			} else {
 				const redirect = xhr.getResponseHeader('location');
 				if (redirect) {
 					if (settings.followRedirects) location.href = redirect;
-					else resolve({ success: xhr.status == 200, code: xhr.status, msg: redirect });
+					else resolve({ success: xhr.status < 400, code: xhr.status, msg: redirect });
 				} else {
-					resolve({ success: xhr.status == 200, code: xhr.status, msg: xhr.response });
+					resolve({ success: xhr.status < 400, code: xhr.status, msg: xhr.response });
 				}
 			}
 		};
